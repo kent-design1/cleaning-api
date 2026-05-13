@@ -117,4 +117,4 @@ JobSchema.index({ scheduledDate: 1 })
 
 const Job =   mongoose.model('Job', JobSchema)
 
-export default Jo
+export default Job

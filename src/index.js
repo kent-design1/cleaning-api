@@ -60,9 +60,22 @@ app.get('/', (req, res) => {
     })
 })
 
-// Routes
-import authRoutes from './routes/auth'
+// ── Routes ──────────────────────────────────────────────
+import authRoutes from './routes/auth.js'
+import customerRoutes from './routes/customers.js'
+import cleanerRoutes from './routes/cleaners.js'
+import jobRoutes from './routes/jobs.js'
+import applicationRoutes from './routes/applications.js'
+import adminRoutes from './routes/admin.js'
+import {verifyEmailConnection} from "./config/email.js";
+
 app.use('/api/auth', authRoutes)
+app.use('/api/customers', customerRoutes)
+app.use('/api/cleaners', cleanerRoutes)
+app.use('/api/jobs', jobRoutes)
+app.use('/api/applications', applicationRoutes)
+app.use('/api/admin', adminRoutes)
+
 
 // Error handling — must be last
 app.use(notFound)
@@ -73,6 +86,7 @@ const isMain = process.argv[1] === fileURLToPath(import.meta.url)
 
 if (isMain) {
   connectDB()
+    verifyEmailConnection()
   const PORT = process.env.PORT || 5000
   const server = app.listen(PORT, () => {
     logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`)

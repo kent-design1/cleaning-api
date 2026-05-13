@@ -2,7 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js'
 import User from '../models/User.js'
 import CleanerProfile from '../models/CleanerProfile.js'
 import Job from '../models/Job.js'
-import sendEmail from '../utils/sendEmail.js'
+import {sendEmail} from '../utils/sendEmail.js'
 
 // GET /api/admin/cleaners/pending — list cleaners awaiting verification
 export const getPendingVerifications = asyncHandler(async (req, res) => {
