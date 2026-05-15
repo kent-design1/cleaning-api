@@ -80,7 +80,7 @@ const CleanerProfileSchema = new mongoose.Schema(
     { timestamps: true }
 )
 
-CleanerProfileSchema.index({ user: 1 })
+// CleanerProfileSchema.index({ user: 1 })
 CleanerProfileSchema.index({ idVerificationStatus: 1 })
 CleanerProfileSchema.index({ averageRating: -1 })
 

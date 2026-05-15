@@ -1,6 +1,7 @@
 import express from 'express'
 import { protect } from '../middleware/authMiddleware.js'
 import { authorize } from '../middleware/roleMiddleware.js'
+import validate, { reviewSchema } from '../middleware/validateMiddleware.js'
 import {
     createReview,
     getCleanerReviews,
@@ -9,11 +10,8 @@ import {
 
 const router = express.Router()
 
-// Public — anyone can see cleaner reviews
 router.get('/cleaner/:id', getCleanerReviews)
-
-// Customer only — create and see own reviews
-router.post('/', protect, authorize('customer'), createReview)
+router.post('/', protect, authorize('customer'), validate(reviewSchema), createReview)
 router.get('/my', protect, authorize('customer'), getMyReviews)
 
 export default router

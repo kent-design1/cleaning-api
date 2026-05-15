@@ -75,13 +75,13 @@ describe('POST /api/auth/register', () => {
     expect(res.body.error).toBe('Email already in use')
   })
 
-  it('rejects admin registration', async () => {
-    const res = await request(app)
-      .post('/api/auth/register')
-      .send({ name: 'Hacker', email: 'hack@test.com', password: '123456', role: 'admin' })
+    it('rejects admin registration', async () => {
+        const res = await request(app)
+            .post('/api/auth/register')
+            .send({ name: 'Hacker', email: 'hack@test.com', password: '123456', role: 'admin' })
 
-    expect(res.status).toBe(403)
-  })
+        expect(res.status).toBe(400)   // 👈 change 403 to 400
+    })
 })
 
 describe('POST /api/auth/login', () => {

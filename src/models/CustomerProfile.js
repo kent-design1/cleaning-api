@@ -32,7 +32,7 @@ const CustomerProfileSchema = new mongoose.Schema(
     { timestamps: true }
 )
 
-CustomerProfileSchema.index({ user: 1 })
+// CustomerProfileSchema.index({ user: 1 })
 
 const CustomerProfile = mongoose.model('CustomerProfile', CustomerProfileSchema)
 

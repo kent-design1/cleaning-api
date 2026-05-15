@@ -15,14 +15,14 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-  "start": "node src/index.js",
-  "dev": "nodemon src/index.js",
-  "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit --detectOpenHandles --runInBand",
-  "test:watch": "jest --watch --runInBand"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit --detectOpenHandles --runInBand",
+    "test:watch": "jest --watch --runInBand"
   },
   "jest": {
-  "testEnvironment": "node",
-  "testTimeout": 30000
+    "testEnvironment": "node",
+    "testTimeout": 30000
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -34,6 +34,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.1",
     "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "joi": "^18.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.2",

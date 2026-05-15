@@ -1,6 +1,11 @@
-
 import express from 'express'
-const router = express.Router()
+import { protect } from '../middleware/authMiddleware.js'
+import validate, {
+    registerSchema,
+    loginSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema
+} from '../middleware/validateMiddleware.js'
 import {
     register,
     verifyEmail,
@@ -9,15 +14,16 @@ import {
     logout,
     forgotPassword,
     resetPassword
-} from '../controllers/authController'
-import {protect} from "../middleware/authMiddleware.js";
+} from '../controllers/authController.js'
 
-router.post('/register', register)
+const router = express.Router()
+
+router.post('/register', validate(registerSchema), register)
 router.get('/verify-email/:token', verifyEmail)
-router.post('/login', login)
+router.post('/login', validate(loginSchema), login)
 router.post('/refresh', refreshToken)
 router.post('/logout', protect, logout)
-router.post('/forgot-password', forgotPassword)
-router.post('/reset-password', resetPassword)
+router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword)
+router.post('/reset-password', validate(resetPasswordSchema), resetPassword)
 
 export default router

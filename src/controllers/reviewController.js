@@ -2,7 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js'
 import Review from '../models/Review.js'
 import Job from '../models/Job.js'
 import CleanerProfile from '../models/CleanerProfile.js'
-import sendEmail from '../utils/sendEmail.js'
+import {sendEmail} from '../utils/sendEmail.js'
 import User from '../models/User.js'
 
 // POST /api/reviews — customer submits a review

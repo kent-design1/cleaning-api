@@ -14,6 +14,8 @@ import initTrackingSocket from './sockets/trackingSocket.js'
 import {logger} from "./utils/logger.js";
 import { fileURLToPath } from 'url'
 import {verifyEmailConnection} from "./config/email.js";
+import hpp from 'hpp'
+import requestLogger from './middleware/requestLogger.js'
 
 
 dotenv.config()
@@ -35,13 +37,24 @@ initTrackingSocket(io)
 
 
 // Security headers
-app.use(helmet())
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+            connectSrc: ["'self'"]
+        }
+    },
+    crossOriginEmbedderPolicy: false
+}))
 
 // CORS — allow frontend
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true    // allows cookies to be sent
 }))
+
 
 // Rate limiting — 100 requests per 15 mins per IP
 const limiter = rateLimit({
@@ -60,10 +73,34 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/register', authLimiter)
 
+
+// Stricter limit for password reset — prevent abuse
+const passwordResetLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,    // 1 hour
+    max: 3,                        // only 3 reset attempts per hour
+    message: { error: 'Too many password reset attempts' }
+})
+app.use('/api/auth/forgot-password', passwordResetLimiter)
+
+
+// File upload limit — prevent spam uploads
+const uploadLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,    // 1 hour
+    max: 10,                       // 10 uploads per hour
+    message: { error: 'Too many upload attempts' }
+})
+app.use('/api/cleaners/my/upload', uploadLimiter)
+
+
+
 // Body parsing
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
+app.use(requestLogger)
+
+ // prevent MongoDB injection
+app.use(hpp())                // prevent parameter pollution
 
 // HTTP request logging in development
 if (process.env.NODE_ENV === 'development') {
