@@ -1,5 +1,7 @@
 
 import express from 'express'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -8,12 +10,27 @@ import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
 import connectDB from './config/db'
 import {notFound, errorHandler} from './middleware/errorMiddleware'
+import initTrackingSocket from './sockets/trackingSocket.js'
 import {logger} from "./utils/logger.js";
 import { fileURLToPath } from 'url'
 
 dotenv.config()
 
 const app = express()
+
+const httpServer = createServer(app)
+
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: process.env.CLIENT_URL || 'http://localhost:3000',
+        credentials: true
+    }
+})
+
+// Initialise socket tracking
+initTrackingSocket(io)
+
 
 // Security headers
 app.use(helmet())
@@ -68,6 +85,7 @@ import jobRoutes from './routes/jobs.js'
 import applicationRoutes from './routes/applications.js'
 import adminRoutes from './routes/admin.js'
 import {verifyEmailConnection} from "./config/email.js";
+import trackingRoutes from './routes/tracking.js'
 
 app.use('/api/auth', authRoutes)
 app.use('/api/customers', customerRoutes)
@@ -75,6 +93,7 @@ app.use('/api/cleaners', cleanerRoutes)
 app.use('/api/jobs', jobRoutes)
 app.use('/api/applications', applicationRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/tracking', trackingRoutes)
 
 
 // Error handling — must be last
@@ -88,9 +107,12 @@ if (isMain) {
   connectDB()
     verifyEmailConnection()
   const PORT = process.env.PORT || 5000
-  const server = app.listen(PORT, () => {
-    logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`)
-  })
+
+
+// Use httpServer not app.listen — critical for Socket.io
+    httpServer.listen(PORT, () => {               // 👈 httpServer not app
+        logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`)
+    })
 
   process.on('unhandledRejection', (err) => {
     logger.error(`Unhandled rejection: ${err.message}`)
