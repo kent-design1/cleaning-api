@@ -13,6 +13,8 @@ import {notFound, errorHandler} from './middleware/errorMiddleware'
 import initTrackingSocket from './sockets/trackingSocket.js'
 import {logger} from "./utils/logger.js";
 import { fileURLToPath } from 'url'
+import {verifyEmailConnection} from "./config/email.js";
+
 
 dotenv.config()
 
@@ -84,8 +86,8 @@ import cleanerRoutes from './routes/cleaners.js'
 import jobRoutes from './routes/jobs.js'
 import applicationRoutes from './routes/applications.js'
 import adminRoutes from './routes/admin.js'
-import {verifyEmailConnection} from "./config/email.js";
 import trackingRoutes from './routes/tracking.js'
+import reviewRoutes from './routes/reviews.js'
 
 app.use('/api/auth', authRoutes)
 app.use('/api/customers', customerRoutes)
@@ -94,7 +96,7 @@ app.use('/api/jobs', jobRoutes)
 app.use('/api/applications', applicationRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/tracking', trackingRoutes)
-
+app.use('/api/reviews', reviewRoutes)
 
 // Error handling — must be last
 app.use(notFound)

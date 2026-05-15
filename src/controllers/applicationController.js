@@ -3,6 +3,8 @@ import Application from '../models/Application.js'
 import Job from '../models/Job.js'
 import CleanerProfile from '../models/CleanerProfile.js'
 import TrackingEvent from '../models/TrackingEvent.js'
+import {sendEmail} from '../utils/sendEmail.js'
+import User from '../models/User.js'
 
 // POST /api/jobs/:id/apply — cleaner applies
 export const applyForJob = asyncHandler(async (req, res) => {
@@ -47,6 +49,32 @@ export const applyForJob = asyncHandler(async (req, res) => {
     // Add cleaner to job's applicants list
     job.applicants.push(req.user._id)
     await job.save()
+
+
+    // Notify customer someone applied
+    const customer = await User.findById(job.customer)
+    const cleaner = req.user
+
+    await sendEmail({
+        to: customer.email,
+        subject: 'Someone applied for your cleaning job',
+        html: `
+      <h2>New Application Received</h2>
+      <p><strong>${cleaner.name}</strong> applied for your job:</p>
+      <h3>${job.title}</h3>
+      <p><strong>Their message:</strong></p>
+      <p>${req.body.coverLetter}</p>
+      ${req.body.proposedRate
+            ? `<p><strong>Proposed rate:</strong> CHF ${req.body.proposedRate}/hr</p>`
+            : ''
+        }
+      <a href="${process.env.CLIENT_URL}/customer/jobs/${job._id}/applications"
+        style="background:#2563eb;color:white;padding:12px 24px;
+               border-radius:6px;text-decoration:none">
+        View Application
+      </a>
+    `
+    })
 
     res.status(201).json(application)
 })
@@ -130,8 +158,39 @@ export const acceptApplication = asyncHandler(async (req, res) => {
         event: 'assigned'
     })
 
+    // Notify the cleaner they got the job
+    await sendEmail({
+        to: application.cleaner.email,
+        subject: '🎉 You got the job!',
+        html: `
+      <h2>Great news, ${application.cleaner.name}!</h2>
+      <p>Your application was accepted for:</p>
+      <h3>${application.job.title}</h3>
+      <p>
+        <strong>Date:</strong> 
+        ${new Date(application.job.scheduledDate).toLocaleDateString()}
+      </p>
+      <p>
+        <strong>Time:</strong> ${application.job.scheduledTime}
+      </p>
+      <p>
+        <strong>Address:</strong> 
+        ${application.job.address.street}, ${application.job.address.city}
+      </p>
+      <a href="${process.env.CLIENT_URL}/cleaner/jobs"
+        style="background:#16a34a;color:white;padding:12px 24px;
+               border-radius:6px;text-decoration:none">
+        View Job Details
+      </a>
+    `
+    })
+
     res.json({ message: 'Application accepted. Cleaner assigned to job.' })
 })
+
+
+
+
 
 // PUT /api/applications/:id/reject — customer rejects
 export const rejectApplication = asyncHandler(async (req, res) => {

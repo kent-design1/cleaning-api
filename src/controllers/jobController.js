@@ -2,6 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js'
 import Job from '../models/Job.js'
 import CustomerProfile from '../models/CustomerProfile.js'
 import TrackingEvent from '../models/TrackingEvent.js'
+import CleanerProfile from "../models/CleanerProfile.js";
 
 // POST /api/jobs — customer posts a job
 export const createJob = asyncHandler(async (req, res) => {
@@ -244,6 +245,7 @@ export const startJob = asyncHandler(async (req, res) => {
 // PUT /api/jobs/:id/complete — cleaner completes the job
 export const completeJob = asyncHandler(async (req, res) => {
     const job = await Job.findById(req.params.id)
+        .populate('customer', 'name email')
 
     if (!job) {
         res.status(404)
@@ -264,12 +266,34 @@ export const completeJob = asyncHandler(async (req, res) => {
     job.timeCompleted = new Date()
     await job.save()
 
+    // Increment cleaner's completed jobs count
+    await CleanerProfile.findOneAndUpdate(
+        { user: req.user._id },
+        { $inc: { totalJobsCompleted: 1 } }
+    )
+
     // Log tracking event
     await TrackingEvent.create({
         job: job._id,
         cleaner: req.user._id,
         event: 'completed',
         location: req.body.location || null
+    })
+
+    // Notify customer job is done — prompt them to leave a review
+    await sendEmail({
+        to: job.customer.email,
+        subject: 'Your cleaning job is complete!',
+        html: `
+      <h2>Job Complete!</h2>
+      <p>Your cleaning job <strong>${job.title}</strong> has been completed.</p>
+      <p>How did it go? Leave a review to help other customers.</p>
+      <a href="${process.env.CLIENT_URL}/customer/jobs/${job._id}/review"
+        style="background:#2563eb;color:white;padding:12px 24px;
+               border-radius:6px;text-decoration:none">
+        Leave a Review
+      </a>
+    `
     })
 
     res.json({ message: 'Job completed', job })
